@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,42 +13,36 @@ import (
 )
 
 type Report struct {
-	NoMutant string `json:count_mutant_dna`
-	Mutant   bool   `json:count_human_dna`
+	NoMutant int `json:"count_mutant_dna"`
+	Mutant   int `json:"count_human_dna"`
 }
 
 const limit int = 2
 const noOfChars int = 256
 
 func indexRoute(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome to my API")
+	fmt.Fprintf(w, "Bienvenido al API de validación del ADN")
 }
 
 func main() {
 	router := mux.NewRouter().StrictSlash(true)
+
 	router.HandleFunc("/", indexRoute)
+	router.HandleFunc("/mutant", isMutant).Methods("POST")
+	router.HandleFunc("/stats", stats).Methods("GET")
+
 	log.Fatal(http.ListenAndServe(":3000", router))
-
-	dna := []string{"ATGCGA", "CAGTGC", "TTATGT", "AGAAGG", "CCCCTA", "TCACTG"} //Mutante
-	//dna := []string{"ATGCGA", "CAGTGC", "TTATTT", "AGACGG", "GCGTCA", "TCACTG"} //No-Mutante
-	var mutant bool = isMutant(dna)
-
-	if mutant {
-		println("Mutante")
-	} else {
-		println("No-Mutante")
-	}
-
-	result := Create(mutant)
-	fmt.Println("Result: ", result)
-
-	report, _ := FindAll()
-	fmt.Println("report")
-	fmt.Println("Mutant", report.Mutant)
-	fmt.Println("No-Mutant", report.NoMutant)
 }
 
-func isMutant(dna []string) bool {
+func stats(w http.ResponseWriter, r *http.Request) {
+	report, _ := FindAll()
+	json.NewEncoder(w).Encode(report)
+}
+
+func isMutant(w http.ResponseWriter, r *http.Request) { //dna []string) bool {
+	//dna := []string{"ATGCGA", "CAGTGC", "TTATGT", "AGAAGG", "CCCCTA", "TCACTG"} //Mutante
+	dna := []string{"ATGCGA", "CAGTGC", "TTATTT", "AGACGG", "GCGTCA", "TCACTG"} //No-Mutante
+
 	var count int = 0
 	var len int = len(dna)
 	var i int = 0
@@ -92,7 +87,18 @@ func isMutant(dna []string) bool {
 		l--
 	}
 
-	return count >= limit
+	w.Header().Set("Content-Type", "application/json")
+
+	var reply bool = count >= limit
+
+	result := Create(reply, dna)
+	fmt.Println("Result: ", result)
+
+	if reply {
+		w.WriteHeader(http.StatusOK)
+	} else {
+		w.WriteHeader(http.StatusForbidden)
+	}
 }
 
 func Search(txt []string, orientation string) int {
@@ -178,31 +184,35 @@ func GetDB() (db *sql.DB, err error) {
 	return
 }
 
-func FindAll() (Report, error) {
-	var report Report
+func FindAll() ([]Report, error) {
 	db, err := GetDB()
 
 	if err != nil {
-		//return nil, err
+		return nil, err
 	} else {
-		rows, err2 := db.Query("select (select count(*) from report where ismutant = 1) as Mutant, (select count(*) from report where ismutant = 0) as NoMutant")
+		rows, err2 := db.Query("select (select count(*) from report where ismutant = true) as Mutant, (select count(*) from report where ismutant = false) as NoMutant")
 		if err2 != nil {
-			//return nil, err
+			return nil, err
 		} else {
+			var reports []Report
+
 			for rows.Next() {
+				var report Report
 				rows.Scan(&report.Mutant, &report.NoMutant)
+				reports = append(reports, report)
 				break
 			}
+
+			return reports, nil
 		}
 	}
-
-	return report, nil
 }
 
-func Create(isMutant bool) bool {
+func Create(isMutant bool, DNA []string) bool {
 	db, err := GetDB()
 
-	result, err := db.Exec("insert into report(ismutant) values (?)", 1)
+	out, _ := json.Marshal(DNA)
+	result, err := db.Exec("insert into report(isMutant, DNA) values (?,?)", isMutant, string(out))
 	if err != nil {
 		return false
 	}

@@ -1,4 +1,4 @@
-module github.com/difermaster/dna-mutant
+module github.com/difermaster/DNA
 
 require (
 	github.com/gorilla/mux v1.8.0
