@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 
@@ -26,12 +27,13 @@ func indexRoute(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	router := mux.NewRouter().StrictSlash(true)
+	port := os.Getenv("PORT")
 
 	router.HandleFunc("/", indexRoute)
 	router.HandleFunc("/mutant", isMutant).Methods("POST")
 	router.HandleFunc("/stats", stats).Methods("GET")
 
-	log.Fatal(http.ListenAndServe(":3000", router))
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }
 
 func stats(w http.ResponseWriter, r *http.Request) {
