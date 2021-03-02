@@ -26,7 +26,7 @@ const limit int = 2
 const noOfChars int = 256
 
 func indexRoute(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Bienvenido al API de validación del ADN")
+	fmt.Fprintf(w, "Welcome to the DNA validation API")
 }
 
 func main() {
@@ -57,8 +57,8 @@ func isMutant(w http.ResponseWriter, r *http.Request) { //dna []string) bool {
 
 	var dna []string = jsonDNA.DNA
 
-	//dna := []string{"ATGCGA", "CAGTGC", "TTATGT", "AGAAGG", "CCCCTA", "TCACTG"} //Mutante
-	//dna := []string{"ATGCGA", "CAGTGC", "TTATTT", "AGACGG", "GCGTCA", "TCACTG"} //No-Mutante
+	//dna := []string{"ATGCGA", "CAGTGC", "TTATGT", "AGAAGG", "CCCCTA", "TCACTG"} //Mutant
+	//dna := []string{"ATGCGA", "CAGTGC", "TTATTT", "AGACGG", "GCGTCA", "TCACTG"} //No-Mutant
 
 	var count int = 0
 	var len int = len(dna)
@@ -91,11 +91,11 @@ func isMutant(w http.ResponseWriter, r *http.Request) { //dna []string) bool {
 		}
 
 		if count < limit && obLR != "" {
-			count += Search(ToCharArray(obLR), "Oblicuo Izquierda-Derecha")
+			count += Search(ToCharArray(obLR), "Left-Right Oblique")
 		}
 
 		if count < limit && obRL != "" {
-			count += Search(ToCharArray(obRL), "Oblicuo Derecha-Izquierda")
+			count += Search(ToCharArray(obRL), "Right-Left Oblique")
 		}
 
 		j = 0
@@ -141,7 +141,7 @@ func Search(txt []string, orientation string) int {
 			}
 
 			if j < 0 {
-				fmt.Println("Los patrones se producen en el turno = ", s, ", orientacion = "+orientation+", Combinacion = "+patterns[p])
+				fmt.Println("Patterns occur in the shift = ", s, ", orientation = "+orientation+", Combination = "+patterns[p])
 				count++
 
 				if s+m < n {
