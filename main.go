@@ -18,6 +18,10 @@ type Report struct {
 	Mutant   int `json:"count_human_dna"`
 }
 
+type Root struct {
+	DNA []string `json:"dna"`
+}
+
 const limit int = 2
 const noOfChars int = 256
 
@@ -34,6 +38,7 @@ func main() {
 	router.HandleFunc("/stats", stats).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":"+port, router))
+	//log.Fatal(http.ListenAndServe(":3000", router))
 }
 
 func stats(w http.ResponseWriter, r *http.Request) {
@@ -42,8 +47,19 @@ func stats(w http.ResponseWriter, r *http.Request) {
 }
 
 func isMutant(w http.ResponseWriter, r *http.Request) { //dna []string) bool {
+	var jsonDNA Root
+
+	err := json.NewDecoder(r.Body).Decode(&jsonDNA)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var dna []string = jsonDNA.DNA
+
+	fmt.Fprintf(w, "Person: %+v", dna)
 	//dna := []string{"ATGCGA", "CAGTGC", "TTATGT", "AGAAGG", "CCCCTA", "TCACTG"} //Mutante
-	dna := []string{"ATGCGA", "CAGTGC", "TTATTT", "AGACGG", "GCGTCA", "TCACTG"} //No-Mutante
+	//dna := []string{"ATGCGA", "CAGTGC", "TTATTT", "AGACGG", "GCGTCA", "TCACTG"} //No-Mutante
 
 	var count int = 0
 	var len int = len(dna)
