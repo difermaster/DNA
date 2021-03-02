@@ -57,7 +57,6 @@ func isMutant(w http.ResponseWriter, r *http.Request) { //dna []string) bool {
 
 	var dna []string = jsonDNA.DNA
 
-	fmt.Fprintf(w, "Person: %+v", dna)
 	//dna := []string{"ATGCGA", "CAGTGC", "TTATGT", "AGAAGG", "CCCCTA", "TCACTG"} //Mutante
 	//dna := []string{"ATGCGA", "CAGTGC", "TTATTT", "AGACGG", "GCGTCA", "TCACTG"} //No-Mutante
 
@@ -109,8 +108,9 @@ func isMutant(w http.ResponseWriter, r *http.Request) { //dna []string) bool {
 
 	var reply bool = count >= limit
 
-	result := Create(reply, dna)
-	fmt.Println("Result: ", result)
+	Create(reply, dna)
+
+	//fmt.Fprintf(w, "IsMutant: ", reply)
 
 	if reply {
 		w.WriteHeader(http.StatusOK)
@@ -198,7 +198,7 @@ func Max(a int, b int) int {
 }
 
 func GetDB() (db *sql.DB, err error) {
-	db, err = sql.Open("sqlite3", ".db/dna.db")
+	db, err = sql.Open("sqlite3", "./db/dna.db")
 	return
 }
 
@@ -209,6 +209,7 @@ func FindAll() ([]Report, error) {
 		return nil, err
 	} else {
 		rows, err2 := db.Query("select (select count(*) from report where ismutant = true) as Mutant, (select count(*) from report where ismutant = false) as NoMutant")
+
 		if err2 != nil {
 			return nil, err
 		} else {
