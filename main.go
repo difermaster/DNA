@@ -198,7 +198,7 @@ func Max(a int, b int) int {
 }
 
 func GetDB() (db *sql.DB, err error) {
-	db, err = sql.Open("sqlite3", "./db/dna.db")
+	db, err = sql.Open("sqlite3", "./dna.db")
 	return
 }
 
